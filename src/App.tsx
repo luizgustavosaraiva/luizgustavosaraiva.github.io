@@ -1,621 +1,361 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
-  contributions,
+  activityWeeks,
+  capabilities,
+  evidence,
   metrics,
-  notes,
+  navSections,
+  principles,
   profile,
-  projects,
-  stack,
-  type Project,
+  skillGroups,
+  trajectory,
+  type Capability,
 } from "./data";
 
-type Route = "home" | "work" | "docs" | "agents" | "about";
-
-const routePaths: Record<Route, string> = {
-  home: "/",
-  work: "/work/",
-  docs: "/docs/",
-  agents: "/agents/",
-  about: "/about/",
-};
-
-function routeFromLocation(): Route {
-  const path = window.location.pathname.replace(/\/+$/, "") || "/";
-  if (path === "/work") return "work";
-  if (path === "/docs") return "docs";
-  if (path === "/agents") return "agents";
-  if (path === "/about") return "about";
-  if (path === "/") return "home";
-  return "about";
-}
+type SectionId = (typeof navSections)[number]["id"];
+type Theme = "dark" | "light";
 
 function App() {
-  const [route, setRoute] = useState<Route>(() => routeFromLocation());
-  const [theme, setTheme] = useState<"dark" | "light">(() => {
-    const saved = window.localStorage.getItem("portfolio-theme");
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = window.localStorage.getItem("tui-theme");
     return saved === "light" ? "light" : "dark";
   });
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<SectionId>("overview");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [skillFilter, setSkillFilter] = useState<"all" | "core" | "adjacent">("all");
+  const visibleSkillGroups = useMemo(
+    () => skillGroups.filter((group) => skillFilter === "all" || (skillFilter === "core" ? group.tone !== "warm" : group.tone === "warm")),
+    [skillFilter],
+  );
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem("portfolio-theme", theme);
+    window.localStorage.setItem("tui-theme", theme);
   }, [theme]);
 
   useEffect(() => {
-    const onPopState = () => setRoute(routeFromLocation());
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
+    const sections = navSections
+      .map(({ id }) => document.getElementById(id))
+      .filter((section): section is HTMLElement => Boolean(section));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible?.target.id) setActiveSection(visible.target.id as SectionId);
+      },
+      { rootMargin: "-24% 0px -62% 0px", threshold: [0.05, 0.2, 0.5] },
+    );
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      const isTyping = target?.tagName === "INPUT" || target?.tagName === "TEXTAREA";
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setSearchOpen(true);
-      }
-      if (event.key === "/" && !isTyping) {
-        event.preventDefault();
-        setSearchOpen(true);
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  const navigate = (next: Route) => {
-    window.history.pushState({}, "", routePaths[next]);
-    setRoute(next);
-    setSearchOpen(false);
+  const goTo = (id: SectionId) => {
+    setActiveSection(id);
     setMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
-    <div className="app-shell">
+    <div className="tui-app">
       <Header
-        route={route}
+        activeSection={activeSection}
         theme={theme}
-        onNavigate={navigate}
-        onToggleTheme={() => setTheme(theme === "dark" ? "light" : "dark")}
-        onOpenSearch={() => setSearchOpen(true)}
         menuOpen={menuOpen}
+        onNavigate={goTo}
+        onToggleTheme={() => setTheme(theme === "dark" ? "light" : "dark")}
         onToggleMenu={() => setMenuOpen((open) => !open)}
       />
-      {route === "home" && <HomePage onNavigate={navigate} />}
-      {route === "work" && <WorkPage onNavigate={navigate} />}
-      {route === "docs" && <DocsPage onNavigate={navigate} />}
-      {route === "agents" && <AgentsPage onNavigate={navigate} />}
-      {route === "about" && <AboutPage onNavigate={navigate} />}
-      <Footer onNavigate={navigate} />
-      {searchOpen && <CommandPalette onClose={() => setSearchOpen(false)} onNavigate={navigate} />}
+
+      <main>
+        <section id="overview" className="tui-section overview-section section-width">
+          <div className="overview-grid">
+            <div className="identity-column">
+              <div className="section-kicker"><span>01</span> profile / auto-presented</div>
+              <h1>
+                Luiz Gustavo
+                <br />
+                <span>Saraiva</span>
+              </h1>
+              <p className="role-line">{profile.role}</p>
+              <p className="intro-copy">{profile.bio}</p>
+              <div className="identity-meta">
+                <div><span>base</span><strong>{profile.location}</strong></div>
+                <div><span>focus</span><strong>product · systems · automation</strong></div>
+                <div><span>github</span><strong>@{profile.login}</strong></div>
+              </div>
+              <div className="identity-actions">
+                <button className="tui-button primary" onClick={() => goTo("capabilities")}>ver capacidades <span>↓</span></button>
+                <a className="tui-button" href={profile.github} target="_blank" rel="noreferrer">abrir github <span>↗</span></a>
+              </div>
+            </div>
+
+            <div className="overview-panels">
+              <Panel code="map.01" title="capability map" className="map-panel">
+                <CapabilityMap />
+                <div className="panel-footnote"><span>primary axis</span><strong>useful software / clear systems</strong></div>
+              </Panel>
+              <div className="overview-mini-grid">
+                <Panel code="state.01" title="current signal" className="mini-panel">
+                  <div className="signal-value"><i /> building in public</div>
+                  <p>Interfaces, automação e sistemas que deixam o trabalho mais legível.</p>
+                </Panel>
+                <Panel code="where.01" title="coordinates" className="mini-panel">
+                  <div className="coordinate-line"><span>location</span><strong>{profile.location}</strong></div>
+                  <div className="coordinate-line"><span>language</span><strong>pt-BR / english</strong></div>
+                  <div className="coordinate-line"><span>availability</span><strong className="accent-text">open to good work</strong></div>
+                </Panel>
+              </div>
+            </div>
+          </div>
+
+          <div className="hero-note-row">
+            <span className="note-marker">+</span>
+            <p>Este é um currículo derivado do seu GitHub: linguagens, formatos de entrega, integrações e continuidade da atividade — sem enumerar projetos.</p>
+            <span className="note-date">snapshot / {profile.updatedAt}</span>
+          </div>
+        </section>
+
+        <section className="metric-band section-width" aria-label="Métricas agregadas do GitHub">
+          {metrics.map((metric, index) => (
+            <div className="metric-cell" key={metric.label}>
+              <span className="metric-index">0{index + 1}</span>
+              <strong>{metric.value}</strong>
+              <span className="metric-label">{metric.label}</span>
+              <small>{metric.note}</small>
+            </div>
+          ))}
+        </section>
+
+        <section id="capabilities" className="tui-section section-width">
+          <SectionIntro
+            number="02"
+            kicker="capabilities / core signal"
+            title="O que o histórico diz sobre mim"
+            description="A leitura vem da combinação entre linguagens, dependências, formatos de produto e trabalho de entrega. O foco não é uma lista de ferramentas: é a forma como elas se conectam."
+          />
+          <div className="capability-layout">
+            <div className="capability-list">
+              {capabilities.map((capability) => <CapabilityRow key={capability.id} capability={capability} />)}
+            </div>
+            <Panel code="method.01" title="how I work" className="method-panel">
+              <div className="method-stack">
+                {principles.map((principle) => (
+                  <div className="method-row" key={principle.index}>
+                    <span>{principle.index}</span>
+                    <div><strong>{principle.title}</strong><p>{principle.body}</p></div>
+                  </div>
+                ))}
+              </div>
+              <div className="method-meter"><span>clarity</span><i><b /></i><strong>high</strong></div>
+              <div className="method-meter"><span>feedback</span><i><b /></i><strong>fast</strong></div>
+              <div className="method-meter"><span>ownership</span><i><b /></i><strong>end-to-end</strong></div>
+            </Panel>
+          </div>
+        </section>
+
+        <section id="stack" className="tui-section section-width">
+          <SectionIntro
+            number="03"
+            kicker="stack / aggregate view"
+            title="Competências em camadas"
+            description="Uma síntese do conjunto do histórico: linguagens na base, produtos e sistemas no meio, automação e craft na superfície."
+          />
+          <div className="skill-toolbar">
+            <div className="skill-tabs" role="tablist" aria-label="Filtrar competências">
+              <button className={skillFilter === "all" ? "is-active" : ""} onClick={() => setSkillFilter("all")} role="tab" aria-selected={skillFilter === "all"}>all layers</button>
+              <button className={skillFilter === "core" ? "is-active" : ""} onClick={() => setSkillFilter("core")} role="tab" aria-selected={skillFilter === "core"}>core</button>
+              <button className={skillFilter === "adjacent" ? "is-active" : ""} onClick={() => setSkillFilter("adjacent")} role="tab" aria-selected={skillFilter === "adjacent"}>adjacent</button>
+            </div>
+            <span className="toolbar-note">sinais agregados · sem project names</span>
+          </div>
+          <div className="skill-grid">
+            {visibleSkillGroups.map((group) => (
+              <Panel key={group.label} code={group.label} title={group.label} className={`skill-panel tone-${group.tone}`}>
+                <p className="skill-detail">{group.detail}</p>
+                <div className="skill-items">
+                  {group.items.map((item) => <span key={item}>{item}</span>)}
+                </div>
+                <div className="skill-level"><span>signal</span><i><b /></i><strong>{group.tone === "accent" ? "dominant" : group.tone === "green" ? "recurring" : "applied"}</strong></div>
+              </Panel>
+            ))}
+          </div>
+          <div className="stack-summary">
+            <span>core proposition</span>
+            <strong>conectar produto, dados e entrega para transformar complexidade em algo utilizável.</strong>
+            <span className="summary-mark">+</span>
+          </div>
+        </section>
+
+        <section id="trajectory" className="tui-section section-width">
+          <SectionIntro
+            number="04"
+            kicker="trajectory / time axis"
+            title="Uma trajetória, não um showcase"
+            description="A leitura por período mostra a direção do trabalho: entender a interface, conectar sistemas, automatizar o fluxo e ampliar a superfície de trabalho."
+          />
+          <div className="trajectory-layout">
+            <div className="trajectory-line">
+              {trajectory.map((item, index) => (
+                <article className="trajectory-item" key={item.period}>
+                  <div className="trajectory-marker"><span>{String(index + 1).padStart(2, "0")}</span></div>
+                  <div className="trajectory-period">{item.period}</div>
+                  <div className="trajectory-content">
+                    <div className="trajectory-label">{item.label}</div>
+                    <h3>{item.title}</h3>
+                    <p>{item.body}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <Panel code="activity.28w" title="github activity" className="activity-panel">
+              <ActivityGrid />
+              <div className="activity-legend"><span>less</span><i className="level-0" /><i className="level-1" /><i className="level-2" /><i className="level-3" /><i className="level-4" /><span>more</span></div>
+              <div className="activity-caption">28 weeks / leitura agregada</div>
+            </Panel>
+          </div>
+        </section>
+
+        <section id="evidence" className="tui-section section-width evidence-section">
+          <SectionIntro
+            number="05"
+            kicker="evidence / public signal"
+            title="O currículo que se valida no histórico"
+            description="Não preciso listar cada repositório para mostrar como trabalho. Os sinais abaixo resumem continuidade, colaboração, amplitude e entrega."
+          />
+          <div className="evidence-grid">
+            {evidence.map((item) => (
+              <Panel key={item.index} code={item.label} title={item.label} className="evidence-panel">
+                <div className="evidence-top"><span>{item.index}</span><strong>{item.value}</strong></div>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </Panel>
+            ))}
+          </div>
+          <Panel code="closing.01" title="the short version" className="closing-panel">
+            <div className="closing-copy">
+              <span className="closing-label">if you read one thing</span>
+              <h2>Eu construyo software para que<br /><span>trabalho real flua melhor.</span></h2>
+              <p>Da interface ao sistema, da API ao deploy: interessado no problema, rigoroso com o contrato e pragmático com a solução.</p>
+            </div>
+            <div className="closing-actions">
+              <a className="tui-button primary" href={profile.github} target="_blank" rel="noreferrer">ver no github <span>↗</span></a>
+              <a className="tui-button" href={profile.linkedin} target="_blank" rel="noreferrer">conectar no linkedin <span>↗</span></a>
+            </div>
+          </Panel>
+        </section>
+      </main>
+
+      <Footer onNavigate={goTo} />
     </div>
   );
 }
 
 type HeaderProps = {
-  route: Route;
-  theme: "dark" | "light";
-  onNavigate: (route: Route) => void;
-  onToggleTheme: () => void;
-  onOpenSearch: () => void;
+  activeSection: SectionId;
+  theme: Theme;
   menuOpen: boolean;
+  onNavigate: (id: SectionId) => void;
+  onToggleTheme: () => void;
   onToggleMenu: () => void;
 };
 
-function Header({ route, theme, onNavigate, onToggleTheme, onOpenSearch, menuOpen, onToggleMenu }: HeaderProps) {
-  const links: Array<{ route: Route; label: string }> = [
-    { route: "work", label: "work" },
-    { route: "docs", label: "docs" },
-    { route: "agents", label: "agents" },
-    { route: "about", label: "about" },
-  ];
-
+function Header({ activeSection, theme, menuOpen, onNavigate, onToggleTheme, onToggleMenu }: HeaderProps) {
   return (
-    <header className="topbar">
-      <div className="topbar-inner">
-        <button className="wordmark" onClick={() => onNavigate("home")} aria-label="Ir para o início">
-          <span className="wordmark-mark">LG</span>
-          <span className="wordmark-slash">/</span>
-          <span>DEV</span>
+    <header className="tui-header">
+      <div className="tui-header-inner">
+        <button className="tui-brand" onClick={() => onNavigate("overview")} aria-label="Voltar ao início">
+          <span className="brand-block">LG</span><span className="brand-slash">/</span><span>PROFILE</span>
         </button>
-        <nav className={`main-nav ${menuOpen ? "is-open" : ""}`} aria-label="Navegação principal">
-          {links.map((link) => (
-            <button
-              key={link.route}
-              className={`nav-link ${route === link.route ? "is-active" : ""}`}
-              onClick={() => onNavigate(link.route)}
-            >
-              {link.label}
+        <nav className={`tui-nav ${menuOpen ? "is-open" : ""}`} aria-label="Seções do perfil">
+          {navSections.map((section, index) => (
+            <button key={section.id} className={activeSection === section.id ? "is-active" : ""} onClick={() => onNavigate(section.id)}>
+              <span>0{index + 1}</span>{section.label}
             </button>
           ))}
         </nav>
-        <button
-          className="mobile-menu-toggle"
-          onClick={onToggleMenu}
-          aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
-          aria-expanded={menuOpen}
-        >
-          {menuOpen ? "×" : "≡"}
-        </button>
-        <div className="topbar-actions">
-          <button className="search-trigger" onClick={onOpenSearch} aria-label="Abrir busca">
-            <span>search</span>
-            <kbd>⌘ K</kbd>
-          </button>
-          <span className="availability"><i /> available</span>
-          <button
-            className="theme-toggle"
-            onClick={onToggleTheme}
-            aria-label={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
-          >
-            {theme === "dark" ? "☼" : "◐"}
-          </button>
+        <div className="header-tools">
+          <span className="header-state"><i /> public signal</span>
+          <button className="theme-button" onClick={onToggleTheme} aria-label="Alternar tema">{theme === "dark" ? "☼" : "◐"}</button>
+          <button className="menu-button" onClick={onToggleMenu} aria-label="Abrir menu" aria-expanded={menuOpen}>{menuOpen ? "×" : "≡"}</button>
         </div>
       </div>
     </header>
   );
 }
 
-function HomePage({ onNavigate }: { onNavigate: (route: Route) => void }) {
-  const featured = projects.filter((project) => project.featured);
-
+function Panel({ code, title, children, className = "" }: { code: string; title: string; children: ReactNode; className?: string }) {
   return (
-    <main>
-      <section className="hero section-pad">
-        <div className="hero-copy">
-          <div className="eyebrow"><span className="eyebrow-mark">+</span> portfolio / 2026</div>
-          <h1>
-            Construo software<br />
-            <span className="text-accent">que deixa o complexo</span><br />
-            mais legível.
-          </h1>
-          <p className="hero-lede">
-            Sou {profile.name.split(" ")[0]}, developer full-stack e construtor de produtos. Trabalho entre
-            interface, dados, automação e as engrenagens que fazem uma ferramenta funcionar de verdade.
-          </p>
-          <div className="hero-actions">
-            <button className="button button-primary" onClick={() => onNavigate("work")}>
-              ver projetos <span>↗</span>
-            </button>
-            <a className="button button-quiet" href={profile.github} target="_blank" rel="noreferrer">
-              github <span>↗</span>
-            </a>
-          </div>
-          <div className="hero-footnote">
-            <span className="status-dot" />
-            <span>atualmente construindo ferramentas pequenas com impacto grande.</span>
-          </div>
-        </div>
-        <div className="hero-visual">
-          <AsciiFrame title="profile.signal" className="signal-frame">
-            <div className="signal-table">
-              <div><span>name</span><strong>{profile.shortName}</strong></div>
-              <div><span>role</span><strong>full-stack / product</strong></div>
-              <div><span>base</span><strong>{profile.location}</strong></div>
-              <div><span>focus</span><strong>tools · systems · ai</strong></div>
-            </div>
-            <pre className="ascii-avatar" aria-label="ASCII avatar">
-{`   .--------.
-  /  o    o  \\
- |      __     |
-  \\  .----.  /
-   '--------'
-     [  lg  ]`}
-            </pre>
-            <div className="signal-footer">
-              <span>status</span>
-              <strong><i className="inline-dot" /> building in public</strong>
-            </div>
-          </AsciiFrame>
-          <div className="hero-caption"><span>fig. 01</span> a portrait, rendered in text.</div>
-        </div>
-      </section>
-
-      <section className="metrics-strip section-pad" aria-label="GitHub metrics">
-        {metrics.map((metric, index) => (
-          <div className="metric" key={metric.label}>
-            <span className="metric-index">0{index + 1}</span>
-            <strong>{metric.value}</strong>
-            <span className="metric-label">{metric.label}</span>
-            <small>{metric.note}</small>
-          </div>
-        ))}
-      </section>
-
-      <section className="section-pad work-preview" id="work">
-        <SectionHeading
-          eyebrow="selected work"
-          title="coisas que eu construí"
-          action={<button className="text-link" onClick={() => onNavigate("work")}>ver arquivo completo <span>→</span></button>}
-        />
-        <div className="project-grid project-grid-home">
-          {featured.map((project) => <ProjectCard key={project.slug} project={project} compact />)}
-        </div>
-      </section>
-
-      <section className="section-pad process-section">
-        <div className="process-copy">
-          <SectionHeading eyebrow="working style" title="do problema ao sistema" />
-          <p>
-            Gosto de começar pelo fluxo real, não pelo framework. Entender a operação, escolher a menor
-            superfície útil e deixar a decisão visível no código e nos testes.
-          </p>
-          <div className="principle-list">
-            <div><span>01</span><strong>clareza antes de abstração</strong></div>
-            <div><span>02</span><strong>interfaces que explicam o sistema</strong></div>
-            <div><span>03</span><strong>ship pequeno, aprender rápido</strong></div>
-          </div>
-        </div>
-        <AsciiFrame title="build.loop" className="process-frame">
-          <pre className="flow-diagram">{`  observe
-     │
-     ▼
-  frame       →  build
-     ▲              │
-     │              ▼
-  learn  ←  verify  ←  ship
-     │
-     └──────────────┘`}</pre>
-          <div className="frame-caption">small loops / durable systems</div>
-        </AsciiFrame>
-      </section>
-
-      <section className="section-pad contribution-preview">
-        <SectionHeading
-          eyebrow="open source trail"
-          title="contribuições que ficaram"
-          action={<button className="text-link" onClick={() => onNavigate("agents")}>ver linha do tempo <span>→</span></button>}
-        />
-        <ContributionList items={contributions.slice(0, 3)} />
-      </section>
-
-      <ContactBanner onNavigate={onNavigate} />
-    </main>
+    <section className={`tui-panel ${className}`}>
+      <div className="panel-header"><span>{code}</span><strong>{title}</strong><i>+</i></div>
+      <div className="panel-body">{children}</div>
+    </section>
   );
 }
 
-function WorkPage({ onNavigate }: { onNavigate: (route: Route) => void }) {
-  const [filter, setFilter] = useState("all");
-  const filters = [
-    { id: "all", label: "all" },
-    { id: "featured", label: "featured" },
-    { id: "product", label: "product" },
-    { id: "tooling", label: "tooling" },
-    { id: "archive", label: "archive" },
-  ];
-
-  const filteredProjects = useMemo(() => {
-    if (filter === "all") return projects;
-    if (filter === "featured") return projects.filter((project) => project.featured);
-    if (filter === "archive") return projects.filter((project) => project.status === "archive");
-    if (filter === "tooling") {
-      return projects.filter((project) => /tool|action|admin|utility/i.test(`${project.title} ${project.kicker}`));
-    }
-    return projects.filter((project) => /product|released|foundation/i.test(`${project.title} ${project.kicker}`));
-  }, [filter]);
-
+function SectionIntro({ number, kicker, title, description }: { number: string; kicker: string; title: string; description: string }) {
   return (
-    <main className="page-main section-pad">
-      <PageIntro
-        eyebrow="work / archive"
-        title="projects, tools & experiments"
-        description="Uma seleção do que está público no GitHub. O critério não é o número de stars; é o quanto o projeto torna um fluxo real mais claro, testável ou confiável."
-      />
-      <div className="filter-row" role="tablist" aria-label="Filtrar projetos">
-        {filters.map((item) => (
-          <button
-            key={item.id}
-            className={`filter-button ${filter === item.id ? "is-selected" : ""}`}
-            onClick={() => setFilter(item.id)}
-            role="tab"
-            aria-selected={filter === item.id}
-          >
-            {item.label}
-          </button>
-        ))}
-        <span className="filter-count">{String(filteredProjects.length).padStart(2, "0")} results</span>
-      </div>
-      <div className="project-grid project-grid-all">
-        {filteredProjects.map((project) => <ProjectCard key={project.slug} project={project} />)}
-      </div>
-      <div className="page-footnote">
-        <span className="status-dot" /> dados públicos do GitHub · atualizado em {profile.updatedAt}
-        <button className="text-link" onClick={() => onNavigate("about")}>sobre o processo →</button>
-      </div>
-    </main>
-  );
-}
-
-function DocsPage({ onNavigate }: { onNavigate: (route: Route) => void }) {
-  return (
-    <main className="page-main section-pad">
-      <PageIntro
-        eyebrow="docs / field notes"
-        title="notes from the build"
-        description="Notas curtas sobre decisões de produto, arquitetura e as pequenas coisas que fazem um projeto continuar compreensível depois do primeiro deploy."
-      />
-      <div className="docs-layout">
-        <div className="docs-index">
-          <div className="docs-index-label">índice</div>
-          {notes.map((note, index) => (
-            <a href={`#${note.id}`} className="docs-index-link" key={note.id}>
-              <span>0{index + 1}</span>{note.title}
-            </a>
-          ))}
-          <div className="docs-index-rule" />
-          <span className="docs-index-note">mais notas em breve<br />quando houver algo que mereça ser revisado.</span>
-        </div>
-        <div className="notes-list">
-          {notes.map((note) => <NoteEntry key={note.id} note={note} />)}
-        </div>
-      </div>
-      <AsciiFrame title="writing.rule" className="docs-rule-frame">
-        <pre className="flow-diagram">{`  claim
-    │
-    ├── context
-    ├── decision
-    └── evidence  →  next`}</pre>
-        <p>Uma nota só vale o custo quando muda uma decisão.</p>
-      </AsciiFrame>
-      <div className="page-back-row">
-        <button className="text-link" onClick={() => onNavigate("work")}>← voltar para o work</button>
-      </div>
-    </main>
-  );
-}
-
-function AgentsPage({ onNavigate }: { onNavigate: (route: Route) => void }) {
-  return (
-    <main className="page-main section-pad">
-      <PageIntro
-        eyebrow="agents / collaboration"
-        title="agents are leverage, not autopilot"
-        description="Uso agentes para acelerar exploração, revisar hipóteses e manter o trabalho em movimento. A decisão continua sendo minha: contexto, escopo, trade-offs e o que entra no mundo."
-      />
-      <div className="agents-grid">
-        <AsciiFrame title="agent.loop" className="agent-loop-frame">
-          <pre className="flow-diagram">{`  intent
-    │
-    ▼
-  context  →  propose
-    ▲              │
-    │              ▼
-  verify  ←  apply
-    │
-    └── human checkpoint`}</pre>
-          <div className="frame-caption">the useful part is the checkpoint</div>
-        </AsciiFrame>
-        <div className="agents-copy">
-          <div className="eyebrow">operating principles</div>
-          <div className="principle-list principle-list-large">
-            <div><span>01</span><strong>contexto antes de prompt</strong><small>leio o repo, as docs e o estado real antes de pedir uma implementação.</small></div>
-            <div><span>02</span><strong>small, reversible slices</strong><small>mudanças pequenas deixam espaço para verificar e aprender.</small></div>
-            <div><span>03</span><strong>evidência no fim</strong><small>testes, logs, uma issue reproduzível ou um link funcionando.</small></div>
-            <div><span>04</span><strong>human checkpoint</strong><small>autonomia é útil; editar o julgamento é onde entra a responsabilidade.</small></div>
-          </div>
-        </div>
-      </div>
-      <section className="agent-contrib-section">
-        <SectionHeading eyebrow="public trail" title="work beyond my own repos" />
-        <ContributionList items={contributions} />
-      </section>
-      <div className="page-back-row">
-        <button className="text-link" onClick={() => onNavigate("about")}>conhecer o autor →</button>
-      </div>
-    </main>
-  );
-}
-
-function AboutPage({ onNavigate }: { onNavigate: (route: Route) => void }) {
-  return (
-    <main className="page-main section-pad">
-      <div className="about-hero">
-        <div className="about-portrait-wrap">
-          <img className="about-portrait" src={profile.avatar} alt={`Retrato de ${profile.name}`} />
-          <span className="portrait-label">hello / from {profile.location}</span>
-        </div>
-        <div className="about-hero-copy">
-          <div className="eyebrow">about / the person behind the commits</div>
-          <h1>Programador full-stack.<br /><span className="text-accent">Curioso por padrão.</span></h1>
-          <p>{profile.bio}</p>
-          <p>
-            Ao longo da jornada, passei por produtos, operação, automação e infraestrutura. Hoje meu foco
-            está em construir sistemas que tiram o ruído do caminho de quem usa.
-          </p>
-          <div className="about-links">
-            <a className="button button-primary" href={profile.linkedin} target="_blank" rel="noreferrer">linkedin <span>↗</span></a>
-            <a className="button button-quiet" href={profile.github} target="_blank" rel="noreferrer">github <span>↗</span></a>
-          </div>
-        </div>
-      </div>
-      <section className="about-grid">
-        <div>
-          <SectionHeading eyebrow="toolkit" title="stack I reach for" />
-          <div className="stack-list">
-            {stack.map((item) => (
-              <div className="stack-row" key={item.name}>
-                <span>{item.name}</span>
-                <span className={`stack-level level-${item.level}`}>{item.level}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div>
-          <SectionHeading eyebrow="path" title="a few turning points" />
-          <div className="timeline-list">
-            <div><span>2020—21</span><p>primeiros produtos e bootcamps: interface, API e o hábito de publicar.</p></div>
-            <div><span>2022—24</span><p>ferramentas internas, admin surfaces e automação que resolve trabalho real.</p></div>
-            <div><span>2025—26</span><p>monorepos, agent workflows, Linux tooling e sistemas com mais contexto.</p></div>
-          </div>
-        </div>
-      </section>
-      <ContactBanner onNavigate={onNavigate} />
-    </main>
-  );
-}
-
-function ProjectCard({ project, compact = false }: { project: Project; compact?: boolean }) {
-  return (
-    <article className={`project-card ${project.image ? "has-image" : ""} ${compact ? "is-compact" : ""}`}>
-      <div className="project-card-head">
-        <span className="project-number">[{project.number}]</span>
-        <span className="project-kicker">{project.kicker}</span>
-      </div>
-      <h3>{project.title}</h3>
-      <p className="project-summary">{project.summary}</p>
-      {project.image && (
-        <div className="project-image-wrap">
-          <img src={project.image} alt={`Prévia do projeto ${project.title}`} className="project-image" />
-          <span className="image-caption">fig. {project.number} / live surface</span>
-        </div>
-      )}
-      {!compact && <p className="project-detail">{project.detail}</p>}
-      <div className="project-card-foot">
-        <div className="tag-list">
-          {project.stack.slice(0, compact ? 3 : 5).map((item) => <span key={item}>{item}</span>)}
-        </div>
-        <a className="project-link" href={project.repo} target="_blank" rel="noreferrer" aria-label={`Abrir ${project.title} no GitHub`}>
-          {project.status ?? "repo"} <span>↗</span>
-        </a>
-      </div>
-    </article>
-  );
-}
-
-function ContributionList({ items }: { items: typeof contributions }) {
-  return (
-    <div className="contribution-list">
-      {items.map((item) => (
-        <a className="contribution-row" href={item.href} target="_blank" rel="noreferrer" key={`${item.date}-${item.title}`}>
-          <span className="contribution-date">{item.date}</span>
-          <span className="contribution-type">{item.type}</span>
-          <div className="contribution-main">
-            <strong>{item.title}</strong>
-            <p>{item.description}</p>
-          </div>
-          <span className="contribution-metric">{item.metric} <b>↗</b></span>
-        </a>
-      ))}
-    </div>
-  );
-}
-
-function NoteEntry({ note }: { note: (typeof notes)[number] }) {
-  return (
-    <article className="note-entry" id={note.id}>
-      <div className="note-meta"><span>{note.date}</span><span>{note.label}</span></div>
-      <h2>{note.title}</h2>
-      <p>{note.body}</p>
-      <a className="text-link" href={note.href} target="_blank" rel="noreferrer">abrir no github <span>↗</span></a>
-    </article>
-  );
-}
-
-function SectionHeading({ eyebrow, title, action }: { eyebrow: string; title: string; action?: ReactNode }) {
-  return (
-    <div className="section-heading">
-      <div>
-        <div className="eyebrow">{eyebrow}</div>
-        <h2>{title}</h2>
-      </div>
-      {action}
-    </div>
-  );
-}
-
-function PageIntro({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
-  return (
-    <div className="page-intro">
-      <div className="eyebrow"><span className="eyebrow-mark">+</span> {eyebrow}</div>
-      <h1>{title}</h1>
+    <div className="section-intro">
+      <div className="section-kicker"><span>{number}</span> {kicker}</div>
+      <h2>{title}</h2>
       <p>{description}</p>
     </div>
   );
 }
 
-function AsciiFrame({ title, children, className = "" }: { title: string; children: ReactNode; className?: string }) {
+function CapabilityMap() {
   return (
-    <div className={`ascii-frame ${className}`}>
-      <div className="frame-title">{title}</div>
-      <div className="frame-content">{children}</div>
+    <div className="capability-map" aria-label="Mapa de capacidades">
+      <div className="map-grid-lines" />
+      <div className="map-axis map-axis-x" />
+      <div className="map-axis map-axis-y" />
+      <div className="map-node node-interface"><span>01</span><strong>interface</strong><small>clarity</small></div>
+      <div className="map-node node-systems"><span>02</span><strong>systems</strong><small>structure</small></div>
+      <div className="map-node node-delivery"><span>03</span><strong>delivery</strong><small>evidence</small></div>
+      <div className="map-node node-product"><span>04</span><strong>product</strong><small>intent</small></div>
+      <div className="map-center"><span>core</span><strong>useful<br />software</strong></div>
+      <div className="map-connector connector-a" /><div className="map-connector connector-b" /><div className="map-connector connector-c" /><div className="map-connector connector-d" />
+      <span className="map-label label-left">human ←→ system</span>
+      <span className="map-label label-right">signal over noise</span>
     </div>
   );
 }
 
-function ContactBanner({ onNavigate }: { onNavigate: (route: Route) => void }) {
+function CapabilityRow({ capability }: { capability: Capability }) {
   return (
-    <section className="contact-banner section-pad">
-      <div>
-        <div className="eyebrow">next / say hello</div>
-        <h2>Tem um sistema<br />para deixar mais simples?</h2>
+    <article className="capability-row">
+      <div className="capability-index">{capability.index}</div>
+      <div className="capability-main">
+        <div className="capability-label">{capability.label}</div>
+        <h3>{capability.title}</h3>
+        <p>{capability.body}</p>
+        <div className="capability-tags">{capability.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
       </div>
-      <div className="contact-action">
-        <p>Se o problema envolve produto, operação ou automação, vou querer entender o fluxo antes de sugerir a solução.</p>
-        <a className="button button-primary" href={profile.linkedin} target="_blank" rel="noreferrer">conectar no linkedin <span>↗</span></a>
-        <button className="text-link" onClick={() => onNavigate("work")}>ou explore o archive →</button>
-      </div>
-    </section>
+      <div className={`capability-level level-${capability.level}`}><span>{capability.level}</span><i /></div>
+    </article>
   );
 }
 
-function Footer({ onNavigate }: { onNavigate: (route: Route) => void }) {
+function ActivityGrid() {
   return (
-    <footer className="site-footer section-pad">
-      <div className="footer-main">
-        <span className="footer-mark">LG/DEV</span>
-        <span className="footer-copy">built with curiosity, types and too much coffee.</span>
-        <span className="footer-year">© {new Date().getFullYear()}</span>
-      </div>
-      <div className="footer-links">
-        <button onClick={() => onNavigate("work")}>work</button>
-        <button onClick={() => onNavigate("docs")}>docs</button>
-        <a href={profile.github} target="_blank" rel="noreferrer">github ↗</a>
-        <a href="#top" onClick={(event) => { event.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>top ↑</a>
+    <div className="activity-grid" aria-label="Atividade recente no GitHub">
+      {activityWeeks.flatMap((week) => week).map((count, index) => {
+        const level = count === 0 ? 0 : count < 5 ? 1 : count < 12 ? 2 : count < 22 ? 3 : 4;
+        return <i key={`${index}-${count}`} className={`level-${level}`} title={`${count} contribuições`} />;
+      })}
+    </div>
+  );
+}
+
+function Footer({ onNavigate }: { onNavigate: (id: SectionId) => void }) {
+  return (
+    <footer className="tui-footer section-width">
+      <div className="footer-panel">
+        <span className="footer-brand">LG / PROFILE</span>
+        <span>curriculum rendered from public activity · {profile.updatedAt}</span>
+        <button onClick={() => onNavigate("overview")}>back to top ↑</button>
       </div>
     </footer>
-  );
-}
-
-function CommandPalette({ onClose, onNavigate }: { onClose: () => void; onNavigate: (route: Route) => void }) {
-  const [query, setQuery] = useState("");
-  const results = useMemo(() => {
-    const normalized = query.toLowerCase().trim();
-    if (!normalized) return projects.slice(0, 5);
-    return projects.filter((project) => `${project.title} ${project.summary} ${project.stack.join(" ")}`.toLowerCase().includes(normalized));
-  }, [query]);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
-
-  return (
-    <div className="palette-backdrop" role="presentation" onMouseDown={onClose}>
-      <div className="command-palette" role="dialog" aria-modal="true" aria-label="Busca de projetos" onMouseDown={(event) => event.stopPropagation()}>
-        <div className="palette-input-wrap">
-          <span>⌕</span>
-          <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="buscar projetos, stacks, sinais..." />
-          <button onClick={onClose}>esc</button>
-        </div>
-        <div className="palette-results">
-          {results.length > 0 ? results.map((project) => (
-            <button className="palette-result" key={project.slug} onClick={() => onNavigate("work")}>
-              <span className="palette-result-number">[{project.number}]</span>
-              <span><strong>{project.title}</strong><small>{project.kicker}</small></span>
-              <span className="palette-arrow">↗</span>
-            </button>
-          )) : <div className="palette-empty">nenhum sinal encontrado.</div>}
-        </div>
-        <div className="palette-footer"><span>↵ abrir archive</span><span>esc fechar</span></div>
-      </div>
-    </div>
   );
 }
 

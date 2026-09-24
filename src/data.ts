@@ -1,34 +1,27 @@
-export type Project = {
-  slug: string;
-  number: string;
+export type Capability = {
+  id: string;
+  index: string;
+  label: string;
   title: string;
-  kicker: string;
-  year: string;
-  summary: string;
-  detail: string;
-  stack: string[];
-  repo: string;
-  status?: string;
-  image?: string;
-  featured?: boolean;
+  body: string;
+  tags: string[];
+  level: "core" | "recurring" | "adjacent";
 };
 
-export type Contribution = {
-  date: string;
-  type: "pull request" | "issue" | "commit run";
-  title: string;
-  description: string;
-  href: string;
-  metric: string;
+export type SkillGroup = {
+  label: string;
+  detail: string;
+  items: string[];
+  tone: "accent" | "green" | "warm";
 };
 
 export const profile = {
   name: "Luiz Gustavo Saraiva",
-  shortName: "Luiz Gustavo",
+  firstName: "Luiz Gustavo",
   login: "luizgustavosaraiva",
-  role: "Developer full-stack · product-minded engineer",
+  role: "Full-stack developer · product-minded engineer",
   location: "Bebedouro, SP",
-  bio: "Construo produtos, ferramentas internas e automações que deixam operações complexas mais simples de usar, entender e manter.",
+  bio: "Construo software que transforma operações complexas em experiências claras, confiáveis e fáceis de manter.",
   github: "https://github.com/luizgustavosaraiva",
   linkedin: "https://www.linkedin.com/in/luiz-gustavo-saraiva/",
   avatar: "/avatar.png",
@@ -36,202 +29,188 @@ export const profile = {
 };
 
 export const metrics = [
-  { value: "1.5k", label: "contribuições", note: "GitHub · últimos 12 meses" },
-  { value: "29", label: "repos públicos", note: "owner · sem forks" },
+  { value: "07", label: "anos de atividade", note: "2020 → agora" },
+  { value: "1.5k", label: "contribuições", note: "calendário GitHub" },
+  { value: "30", label: "repos públicos", note: "sem forks" },
   { value: "159", label: "commits", note: "últimos 12 meses" },
-  { value: "04", label: "pull requests", note: "mergeados no período" },
+  { value: "04", label: "PRs mergeados", note: "últimos 12 meses" },
 ];
 
-export const projects: Project[] = [
+export const capabilities: Capability[] = [
   {
-    slug: "omarchy-ai-memory",
-    number: "01",
-    title: "AI Memory / Omarchy",
-    kicker: "tool released · public",
-    year: "2026",
-    summary:
-      "Um companheiro de desktop que leva o wiki ai-memory para dentro do shell Omarchy — sem abrir o navegador.",
-    detail:
-      "Bar widget em QML com handoffs pendentes, estatísticas da sessão, busca FTS5, listagem de páginas e renderização Markdown dentro do painel. A API é consumida em modo read-only, com manifesto, hot reload e instalador com checksum.",
-    stack: ["QML", "Shell", "JSON", "Markdown"],
-    repo: "https://github.com/luizgustavosaraiva/omarchy-ai-memory",
-    status: "v1.1.2",
-    image: "/omarchy-ai-memory.png",
-    featured: true,
-  },
-  {
-    slug: "sendro",
-    number: "02",
-    title: "Sendro",
-    kicker: "product foundation · public",
-    year: "2026",
-    summary:
-      "Base de uma plataforma B2B para organizar despacho de entregas, da criação da solicitação ao proof-of-delivery.",
-    detail:
-      "Monorepo pnpm + Turborepo com API Fastify/tRPC, autenticação, dashboard SSR, regras de pricing, Stripe Connect e contratos compartilhados com Zod. A documentação do projeto separa claramente o que está entregue do que ainda é roadmap.",
-    stack: ["TypeScript", "Fastify", "tRPC", "Drizzle", "PostgreSQL", "pnpm"],
-    repo: "https://github.com/luizgustavosaraiva/sendro",
-    status: "M001–M004",
-    featured: true,
-  },
-  {
-    slug: "get-pull-requests-commits",
-    number: "03",
-    title: "PR Commits Action",
-    kicker: "developer tooling · public",
-    year: "2024",
-    summary:
-      "Uma GitHub Action pequena e explícita para coletar os commits do pull request atual durante checks de CI.",
-    detail:
-      "O objetivo não é abstrair o GitHub inteiro: é entregar o contexto certo para o próximo step do workflow, com uma superfície pequena, documentada e fácil de adopter.",
-    stack: ["TypeScript", "GitHub Actions", "Node.js"],
-    repo: "https://github.com/luizgustavosaraiva/get-pull-requests-commits",
-    status: "open source",
-    featured: true,
-  },
-  {
-    slug: "enviou-metrics",
-    number: "04",
-    title: "Enviou Metrics",
-    kicker: "operational tool · public repo",
-    year: "2022",
-    summary:
-      "Uma ferramenta web para acompanhamento de métricas, criada para transformar dados operacionais em uma leitura mais rápida.",
-    detail:
-      "Um experimento concreto de produto interno: interface web, dados de operação e implantação automatizada em um repositório pequeno e fácil de entender.",
-    stack: ["TypeScript", "HTML", "GitHub Actions"],
-    repo: "https://github.com/luizgustavosaraiva/enviou-metrics",
-    status: "shipped",
-  },
-  {
-    slug: "ig-news",
-    number: "05",
-    title: "iG News",
-    kicker: "editorial product · experiment",
-    year: "2021",
-    summary:
-      "Uma plataforma editorial com feed de notícias, assinatura e CMS — um laboratório de produto full-stack.",
-    detail:
-      "Exploração de frontend, autenticação, pagamentos e conteúdo headless em um projeto com Next.js, Prismic, Stripe, Supabase e SCSS.",
-    stack: ["Next.js", "Prismic", "Stripe", "Supabase", "SCSS"],
-    repo: "https://github.com/luizgustavosaraiva/ig.news",
-    status: "learning lab",
-  },
-  {
-    slug: "letmeask",
-    number: "06",
-    title: "Letmeask",
-    kicker: "realtime product · experiment",
-    year: "2021",
-    summary:
-      "Um espaço de perguntas e respostas em tempo real, construído para aprender a montar produto do zero.",
-    detail:
-      "React, Firebase e uma experiência focada em quem pergunta e quem responde. Um bom lembrete de que um projeto pequeno ainda pode ensinar architecture, state e product thinking.",
-    stack: ["React", "TypeScript", "Firebase"],
-    repo: "https://github.com/luizgustavosaraiva/letmeask",
-    status: "1 star",
-  },
-  {
-    slug: "ipanema-admin",
-    number: "07",
-    title: "Painel administrativo",
-    kicker: "admin surface · archive",
-    year: "2024",
-    summary:
-      "Uma superfície administrativa para operar dados com uma camada de controle e uma experiência de uso menos improvisada.",
-    detail:
-      "Projeto React/TypeScript com foco em telas administrativas, adaptações de dados e uma base para ferramentas internas que precisam ser previsíveis.",
-    stack: ["React", "TypeScript", "React Admin"],
-    repo: "https://github.com/luizgustavosaraiva/ipanema-admin",
-    status: "archive",
-  },
-  {
-    slug: "sorteai",
-    number: "08",
-    title: "Sorteio",
-    kicker: "utility · archive",
-    year: "2024",
-    summary:
-      "Uma utilidade web para sorteios, construída como um exercício direto de interface e deploy.",
-    detail:
-      "Um repositório de Learn by shipping: TypeScript, React, CSS e o ciclo completo de levar uma ideia pequena até um link público.",
-    stack: ["TypeScript", "React", "CSS"],
-    repo: "https://github.com/luizgustavosaraiva/sorteai",
-    status: "archive",
-  },
-];
-
-export const contributions: Contribution[] = [
-  {
-    date: "2026-09",
-    type: "issue",
-    title: "Omarchy plugin marketplace",
-    description:
-      "Submissão e ciclo de verificação do AI Memory como bar widget, incluindo documentação de instalação, dependências e segurança do instalador.",
-    href: "https://github.com/omacom/omarchy-plugin-marketplace/issues/7178",
-    metric: "2 issues",
-  },
-  {
-    date: "2026-04",
-    type: "pull request",
-    title: "SquadFoundry CLI",
-    description:
-      "Quatro PRs mergeados para deixar a inicialização, a descoberta de comandos e o bridge do Claude mais resilientes em diferentes hosts e shells.",
-    href: "https://github.com/cubocompany/squadfoundry/pulls?q=is%3Apr+author%3Aluizgustavosaraiva",
-    metric: "4 merged PRs",
-  },
-  {
-    date: "2026-04",
-    type: "issue",
-    title: "Graphify installation report",
-    description:
-      "Identifiquei e reportei uma lacuna entre a mensagem de sucesso do instalador e os arquivos/comandos que não apareciam no ambiente.",
-    href: "https://github.com/Graphify-Labs/graphify/issues/378",
-    metric: "reproduzível",
-  },
-  {
-    date: "2026-04",
-    type: "commit run",
-    title: "OpenGem / codebase work",
-    description:
-      "Um bloco de implementação em um repositório público da Cubo, com 44 commits registrados no mesmo período.",
-    href: "https://github.com/cubocompany/opengem",
-    metric: "44 commits",
-  },
-];
-
-export const stack = [
-  { name: "TypeScript", level: "core" },
-  { name: "React / Next.js", level: "core" },
-  { name: "Node.js / Fastify", level: "core" },
-  { name: "PostgreSQL / Drizzle", level: "working" },
-  { name: "QML / Linux tooling", level: "working" },
-  { name: "C# / .NET", level: "foundation" },
-];
-
-export const notes = [
-  {
-    id: "read-only",
-    date: "2026-09",
+    id: "product",
+    index: "01",
     label: "product / interface",
-    title: "Read-only é uma decisão de produto",
-    body: "O painel do AI Memory não muta a wiki. Restringir a superfície deixou a integração mais segura e a experiência mais barata de explicar.",
-    href: "https://github.com/luizgustavosaraiva/omarchy-ai-memory",
+    title: "Interfaces que reduzem atrito",
+    body: "Transformo fluxos densos em superfícies simples de entender, operar e manter — sem esconder a complexidade que realmente importa.",
+    tags: ["React", "Next.js", "TypeScript", "UI systems", "responsive"],
+    level: "core",
   },
   {
-    id: "contract",
-    date: "2026-04",
-    label: "architecture / monorepo",
-    title: "Um monorepo é um contrato",
-    body: "No Sendro, schemas compartilhados, fronteiras de app e verificações de workspace transformam a arquitetura em decisões que podem ser testadas.",
-    href: "https://github.com/luizgustavosaraiva/sendro",
+    id: "systems",
+    index: "02",
+    label: "systems / data",
+    title: "APIs e dados com fronteiras claras",
+    body: "Modelos, contratos e integrações para que uma mudança de produto não vire um efeito domino silencioso.",
+    tags: ["Node.js", "Fastify", "tRPC", "PostgreSQL", "Drizzle", "Zod"],
+    level: "core",
   },
   {
-    id: "small-surface",
-    date: "2024-10",
-    label: "tooling / CI",
-    title: "A melhor automação tem uma superfície pequena",
-    body: "A PR Commits Action existe para resolver um único ponto do workflow. O valor está no contrato simples, não em adicionar mais uma plataforma.",
-    href: "https://github.com/luizgustavosaraiva/get-pull-requests-commits",
+    id: "delivery",
+    index: "03",
+    label: "delivery / quality",
+    title: "Automação que entrega evidência",
+    body: "CI/CD, testes, scripts e ferramentas de desenvolvimento entram no fluxo para deixar feedback rápido e repetível.",
+    tags: ["GitHub Actions", "testing", "Vite", "Docker", "Shell", "DX"],
+    level: "core",
   },
+  {
+    id: "integrations",
+    index: "04",
+    label: "integrations / operations",
+    title: "Integrações que respeitam o contexto",
+    body: "Webhooks, autenticação, pagamentos, mensagens e serviços externos entram no produto com contratos explícitos e estados observáveis.",
+    tags: ["REST", "webhooks", "auth", "Stripe", "Firebase", "Supabase"],
+    level: "recurring",
+  },
+  {
+    id: "platform",
+    index: "05",
+    label: "platform / craft",
+    title: "Software que atravessa camadas",
+    body: "Do browser ao sistema operacional: performance, ergonomia, documentação e uma base técnica que não vira caixa-preta.",
+    tags: ["Linux", "QML", "Rust", ".NET", "Dart", "architecture"],
+    level: "adjacent",
+  },
+];
+
+export const skillGroups: SkillGroup[] = [
+  {
+    label: "language layer",
+    detail: "linguagens que aparecem com mais frequência",
+    items: ["TypeScript", "JavaScript", "C#", "SQL", "HTML / CSS", "Dart", "Rust", "QML / Shell"],
+    tone: "accent",
+  },
+  {
+    label: "product layer",
+    detail: "da interface ao comportamento",
+    items: ["React", "Next.js", "Node.js", "component systems", "state", "responsive UI", "accessibility"],
+    tone: "green",
+  },
+  {
+    label: "systems layer",
+    detail: "a base que sustenta o produto",
+    items: ["Fastify", "tRPC", "PostgreSQL", "Drizzle", "Zod", "auth", "REST", "webhooks"],
+    tone: "warm",
+  },
+  {
+    label: "delivery layer",
+    detail: "como a mudança chega ao mundo",
+    items: ["GitHub Actions", "CI / CD", "testing", "Vite", "Docker", "Shell", "Puppeteer", "observability"],
+    tone: "accent",
+  },
+];
+
+export const trajectory = [
+  {
+    period: "2020—21",
+    label: "fundamentos",
+    title: "Interfaces, APIs e os primeiros produtos",
+    body: "A base foi se formando entre frontend, backend e o hábito de colocar uma ideia em um link público.",
+  },
+  {
+    period: "2022—24",
+    label: "systems",
+    title: "Ferramentas para operação real",
+    body: "Mais dados, integrações, automação e superfícies administrativas: a pergunta passa a ser como tornar o trabalho repetitivo confiável.",
+  },
+  {
+    period: "2025—26",
+    label: "leverage",
+    title: "Monorepos, agentes e sistemas operacionais",
+    body: "A complexidade passa a pedir fronteiras claras, documentação e ferramentas que melhoram o ambiente de quem constrói.",
+  },
+  {
+    period: "now",
+    label: "next",
+    title: "Software útil, legível e compartilhável",
+    body: "O foco continua sendo transformar problemas operacionais em sistemas que uma equipe consegue entender e evoluir.",
+  },
+];
+
+export const evidence = [
+  {
+    index: "01",
+    label: "continuidade",
+    value: "7 anos",
+    title: "Construir também é manter",
+    body: "A atividade não é uma coleção de screenshots: é um histórico contínuo de código, correções, decisões e melhorias.",
+  },
+  {
+    index: "02",
+    label: "collaboration",
+    value: "4 PRs",
+    title: "Aberturas que geram mudança",
+    body: "Pull requests e issues aparecem como parte do trabalho: entender o contexto do outro, propor uma solução e deixar evidência.",
+  },
+  {
+    index: "03",
+    label: "breadth",
+    value: "multi-stack",
+    title: "Conhecimento que atravessa camadas",
+    body: "A combinação de linguagens e formatos sugere um developer que entende o fluxo inteiro, não apenas uma camada isolada.",
+  },
+  {
+    index: "04",
+    label: "delivery",
+    value: "build → learn",
+    title: "Aprender no caminho",
+    body: "A maior parte das competências principais aparece em ciclos: observar, construir, verificar, explicar e repetir com menos ruído.",
+  },
+];
+
+// Last 28 GitHub calendar weeks, kept as a small visual signal rather than a vanity metric.
+export const activityWeeks = [
+  [13, 0, 0, 12, 1, 2, 0],
+  [1, 0, 0, 0, 2, 6, 15],
+  [2, 0, 0, 2, 4, 7, 25],
+  [0, 11, 8, 14, 3, 22, 1],
+  [6, 0, 0, 15, 24, 33, 18],
+  [0, 0, 0, 1, 0, 8, 0],
+  [2, 13, 1, 17, 0, 4, 0],
+  [0, 0, 0, 8, 15, 8, 9],
+  [10, 0, 11, 16, 6, 1, 4],
+  [12, 0, 0, 3, 0, 14, 10],
+  [1, 3, 0, 3, 6, 5, 7],
+  [6, 0, 7, 12, 4, 1, 0],
+  [0, 0, 0, 5, 1, 16, 12],
+  [1, 0, 0, 0, 7, 12, 10],
+  [4, 0, 0, 2, 2, 5, 4],
+  [6, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 14, 2, 5, 21],
+  [14, 0, 0, 2, 15, 1, 1],
+  [4, 0, 0, 4, 4, 1, 8],
+  [4, 0, 0, 24, 4, 9, 11],
+  [6, 0, 0, 11, 3, 12, 1],
+  [8, 0, 0, 2, 0, 3, 14],
+  [4, 0, 0, 6, 4, 2, 6],
+  [2, 1, 0, 21, 30, 9, 5],
+  [8, 0, 0, 5, 3, 1, 7],
+  [9, 2, 0, 7, 3, 5, 4],
+  [27, 0, 0, 17, 2, 14, 17],
+  [28, 0, 0, 2, 10, 6, 2],
+];
+
+export const principles = [
+  { index: "01", title: "clareza antes de abstração", body: "A forma mais simples que explica o problema é quase sempre a melhor próxima interface." },
+  { index: "02", title: "sistemas explicáveis", body: "Código, documentação e operação precisam contar a mesma história." },
+  { index: "03", title: "ciclos curtos, prova real", body: "Construir, verificar e aprender vale mais do que acumular promises." },
+];
+
+export const navSections = [
+  { id: "overview", label: "overview" },
+  { id: "capabilities", label: "capabilities" },
+  { id: "stack", label: "stack" },
+  { id: "trajectory", label: "trajectory" },
+  { id: "evidence", label: "evidence" },
 ];
