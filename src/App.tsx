@@ -309,12 +309,17 @@ function CapabilityMap() {
       <div className="map-grid-lines" />
       <div className="map-axis map-axis-x" />
       <div className="map-axis map-axis-y" />
+      <svg className="map-connectors" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <line x1="50" y1="50" x2="21" y2="28" />
+        <line x1="50" y1="50" x2="79" y2="28" />
+        <line x1="50" y1="50" x2="21" y2="73" />
+        <line x1="50" y1="50" x2="79" y2="73" />
+      </svg>
       <div className="map-node node-interface"><span>01</span><strong>interface</strong><small>clarity</small></div>
       <div className="map-node node-systems"><span>02</span><strong>systems</strong><small>structure</small></div>
       <div className="map-node node-delivery"><span>03</span><strong>delivery</strong><small>evidence</small></div>
       <div className="map-node node-product"><span>04</span><strong>product</strong><small>intent</small></div>
       <div className="map-center"><span>core</span><strong>useful<br />software</strong></div>
-      <div className="map-connector connector-a" /><div className="map-connector connector-b" /><div className="map-connector connector-c" /><div className="map-connector connector-d" />
       <span className="map-label label-left">human ←→ system</span>
       <span className="map-label label-right">signal over noise</span>
     </div>

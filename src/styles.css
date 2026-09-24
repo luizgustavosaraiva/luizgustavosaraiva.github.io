@@ -562,17 +562,22 @@ img {
   line-height: 1.25;
 }
 
-.map-connector {
+.map-connectors {
   position: absolute;
   z-index: 1;
-  background: var(--line-strong);
-  transform-origin: left center;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
 }
 
-.connector-a { top: 38%; left: 28%; width: 23%; height: 1px; transform: rotate(28deg); }
-.connector-b { top: 38%; right: 28%; width: 23%; height: 1px; transform: rotate(152deg); transform-origin: right center; }
-.connector-c { right: 28%; bottom: 38%; width: 23%; height: 1px; transform: rotate(28deg); transform-origin: right center; }
-.connector-d { bottom: 38%; left: 28%; width: 23%; height: 1px; transform: rotate(152deg); }
+.map-connectors line {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+  stroke-linecap: square;
+  vector-effect: non-scaling-stroke;
+}
 
 .map-label {
   position: absolute;
