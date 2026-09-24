@@ -219,7 +219,7 @@ function App() {
         <section id="evidence" className="tui-section section-width evidence-section">
           <SectionIntro
             number="05"
-            kicker="evidence / public signal"
+            kicker="evidence / historical signal"
             title="O currículo que se valida no histórico"
             description="Não preciso listar cada repositório para mostrar como trabalho. Os sinais abaixo resumem continuidade, colaboração, amplitude e entrega."
           />
@@ -275,7 +275,7 @@ function Header({ activeSection, theme, menuOpen, onNavigate, onToggleTheme, onT
           ))}
         </nav>
         <div className="header-tools">
-          <span className="header-state"><i /> public signal</span>
+          <span className="header-state"><i /> historical signal</span>
           <button className="theme-button" onClick={onToggleTheme} aria-label="Alternar tema">{theme === "dark" ? "☼" : "◐"}</button>
           <button className="menu-button" onClick={onToggleMenu} aria-label="Abrir menu" aria-expanded={menuOpen}>{menuOpen ? "×" : "≡"}</button>
         </div>
@@ -357,7 +357,7 @@ function Footer({ onNavigate }: { onNavigate: (id: SectionId) => void }) {
     <footer className="tui-footer section-width">
       <div className="footer-panel">
         <span className="footer-brand">LG / PROFILE</span>
-        <span>curriculum rendered from public activity · {profile.updatedAt}</span>
+        <span>curriculum rendered from GitHub history · {profile.updatedAt}</span>
         <button onClick={() => onNavigate("overview")}>back to top ↑</button>
       </div>
     </footer>

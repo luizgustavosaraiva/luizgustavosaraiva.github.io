@@ -5,6 +5,7 @@ Currículo auto-apresentado em uma única página, com linguagem visual de TUI: 
 ## O que ele representa
 
 - **GitHub como fonte**: languages, formatos de entrega, integrações, atividade e colaboração.
+- **Histórico completo**: o recorte de pull requests considera todos os PRs criados pela conta que ainda estão acessíveis, incluindo estados fechados e repositórios arquivados; repositórios excluídos pelo GitHub não podem ser recuperados.
 - **Sem vitrine de projetos**: nenhum repositório, nome de produto ou caso individual é listado.
 - **Competências em camadas**: interface, sistemas, dados, automação, integrações e platform craft.
 - **Uma página**: `overview`, `capabilities`, `stack`, `trajectory` e `evidence` são seções da mesma interface.

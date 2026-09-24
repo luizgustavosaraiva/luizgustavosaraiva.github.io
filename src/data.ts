@@ -33,7 +33,7 @@ export const metrics = [
   { value: "1.5k", label: "contribuições", note: "calendário GitHub" },
   { value: "30", label: "repos públicos", note: "sem forks" },
   { value: "159", label: "commits", note: "últimos 12 meses" },
-  { value: "04", label: "PRs mergeados", note: "últimos 12 meses" },
+  { value: "699", label: "PRs mergeados", note: "752 criados · histórico completo" },
 ];
 
 export const capabilities: Capability[] = [
@@ -149,9 +149,9 @@ export const evidence = [
   {
     index: "02",
     label: "collaboration",
-    value: "4 PRs",
+    value: "699 merged",
     title: "Aberturas que geram mudança",
-    body: "Pull requests e issues aparecem como parte do trabalho: entender o contexto do outro, propor uma solução e deixar evidência.",
+    body: "752 pull requests foram criados no histórico acessível da conta; 699 foram mergeados. O recorte inclui pull requests encerradas e repositórios arquivados, não apenas a janela de 12 meses.",
   },
   {
     index: "03",
